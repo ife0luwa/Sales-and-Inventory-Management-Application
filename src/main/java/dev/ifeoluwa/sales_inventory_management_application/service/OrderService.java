@@ -7,6 +7,7 @@ import dev.ifeoluwa.sales_inventory_management_application.model.Orders;
 import dev.ifeoluwa.sales_inventory_management_application.model.Product;
 import dev.ifeoluwa.sales_inventory_management_application.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 
@@ -24,29 +25,21 @@ public class OrderService {
 
     private CustomerService customerService;
 
+    private KafkaProducer kafkaProducer;
+
     @Autowired
-    public OrderService(OrderRepository orderRepository, ProductService productService, CustomerService customerService) {
+    public OrderService(OrderRepository orderRepository, ProductService productService, CustomerService customerService, KafkaProducer kafkaProducer) {
         this.orderRepository = orderRepository;
         this.productService = productService;
         this.customerService = customerService;
+        this.kafkaProducer = kafkaProducer;
     }
 
 
 
-//    public Order createOrder(Order order, CustomerDTO customerDTO) throws ChangeSetPersister.NotFoundException {
-//        Product product = productService.getProductById(order.getProductId());
-//
-//        if(product != null && product.getQuantityInStock() >= order.getQuantity()) {
-//            product.setQuantityInStock(product.getQuantityInStock() - order.getQuantity());
-//            productService.updateProduct(product.getId(), product);
-//            order.setTotalPrice(order.getQuantity() * product.getPrice());
-//            Customer customer = customerService.createCustomer(customerDTO);
-//            order.setCustomer(customer);
-//            return orderRepository.save(order);
-//        } else {
-//            throw new BadRequestException("Product not available");
-//        }
-//    }
+
+
+
 
     public Orders createOrder(OrderDTO orderDTO, Long productId) throws ChangeSetPersister.NotFoundException {
         Product product = productService.getProductById(productId);
@@ -60,7 +53,9 @@ public class OrderService {
             Customer customer = customerService.createCustomer(orderDTO);
             orders.setProductId(productId);
             orders.setCustomer(customer);
-            return orderRepository.save(orders);
+            Orders order = orderRepository.save(orders);
+            kafkaProducer.sendMessage(order);
+            return order;
         } else {
             throw new BadRequestException("Product not available");
         }
@@ -74,6 +69,8 @@ public class OrderService {
         orders.setOrderId(UUID.randomUUID());
         return orders;
     }
+
+
 
 
 
