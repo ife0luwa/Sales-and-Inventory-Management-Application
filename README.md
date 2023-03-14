@@ -60,8 +60,8 @@ Example Request Body: <br>
 }`
 
 * Change the product’s price without affecting the total value of orders which have already been placed
-`PUT /api/products/price/change/{id}` ,
-Example Request Body:
+`PUT /api/products/price/change/{id}` <br>
+Example Request Body: <br>
 `{
 "price": 15.00
 }`
