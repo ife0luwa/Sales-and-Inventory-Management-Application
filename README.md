@@ -35,7 +35,6 @@ Example request body:<br>
 "quantityInStock": 100,
 "description": "A sample product"
 } `
-* 
 * Update an existing product
  `PUT /api/products//update/{id}`<br>
 Example Request Body(json): <br>
